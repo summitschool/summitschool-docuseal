@@ -1,0 +1,43 @@
+services:
+  # NOTE FOR RAILWAY:
+  # On Railway you will NOT use this full compose.
+  # Deploy three separate services:
+  # 1. DocuSeal App (this image)
+  # 2. Postgres (Railway addon or image)
+  # 3. Redis (Railway addon or image)
+  #
+  # Attach a Volume to the app at /data/docuseal
+  # Use Railway variables for DATABASE_URL and REDIS_URL
+  # Set HOST to your Railway public domain or custom domain (e.g. enroll.summitchurchschool.org)
+  #
+  # This compose is useful for local testing of the migration.
+
+  app:
+    image: docuseal/docuseal:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./docuseal:/data/docuseal
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/docuseal
+      - REDIS_URL=redis://redis:6379/0
+      - HOST=localhost:3000   # Change to your public Railway / custom domain on deploy
+      - SECRET_KEY_BASE=518115953f63621aec15110a619bde97bb0c33605e6ba7c7d79ece44524bb7d6ad2f12fc113cdbd9c1b8fa487984103620eef57a4be81cdca7d17857e2dce8fc
+      - RAILS_LOG_LEVEL=info
+    # No traefik labels for Railway
+
+  postgres:
+    image: postgres:18
+    volumes:
+      - './pg_data:/var/lib/postgresql/18/docker'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: docuseal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
